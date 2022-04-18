@@ -1,0 +1,101 @@
+ 
+The lines with the # sign after them are the answers
+
+
+use my_first_db#
+******************************************
+db.createCollection('students')#
+***************************************************
+db.students.insert({name: "Mohammad" , home_state : "Palestine" , lucky_number : 13 , birthday :{month : 2 , day : 19 , year : 1996}})#
+
+db.students.find().pretty#
+
+db.students.find({"home_state" : "Qatar"})
+
+db.students.find({home_state:{$in:["Washington","California"]}})#
+
+
+db.students.find({lucky_number:{$gt:3}})#
+
+db.students.find({lucky_number:{$lte:10}})#
+
+
+db.students.find({ lucky_number: { $gte: 1, $lte: 9 }})#
+
+
+
+See the updateMany operator in :https://www.mongodb.com/docs/manual/reference/operator/update/
+//this will add the array for all the documents inside students collection
+db.students.updateMany({} ,{$set: {interests:["coding" , "brunch" , "MongoDB"]}})#
+
+
+
+db.students.update({name:"Mohammad"},{$push:{interests:"swimming"}})#
+//The same for the rest of the students just change the name
+
+
+
+//both of these commands will overwrite all the specified objects keys and values and insert the specified key and value instead for the first object.
+db.students.update({name:"Mohammad"},{name:"Mahmoud"} )
+db.students.update({name:"Mohammad"},{name:"Mahmoud"}  , true)
+
+
+
+//So in order to solve this issue we must use the set operator like so:
+db.students.update({name:"Mohammad"},{$set:{name:"Mahmoud"}})
+//this will prevent the update command from overwriting everything
+
+
+//this will add the array for a specified document inside students collection using the name
+db.students.update({name : "Mohammad"} , {$set : {interests : ["coding" , "brunch" , "MongoDB"]}})
+
+//this will add taxes to the array of taxes in a specified document
+db.students.update({name : "Mohammad"} , {$push : {interests : "taxes"}})#
+
+//if you add the brackets to taxes this will put an array inside an array
+db.students.update({name : "Mohammad"} , {$push : {interests : ["taxes"]}})
+
+
+
+// Remove the 'taxes' interest you just added.
+//pull operator used as the vice versa of push
+db.students.update({name:"Sanad"},{$pull:{interests:"taxes"}})#
+
+
+db.students.remove({home_state: "California"})#
+
+
+db.students.remove({name: "Mohammad"})#
+
+
+
+db.students.remove({lucky_number : {$gt : 5}}, true)#
+
+
+db.students.updateMany({},{$set:{number_of_belts:0}})#
+
+
+
+$inc:Increments the value of the field by the specified amount.
+resources for more: https://www.mongodb.com/docs/manual/reference/operator/update/
+
+
+db.students.updateMany({home_state : "Washington"} , {$inc :{number_of_belts : 1}})#
+
+
+
+	
+$rename: Renames a field
+db.students.updateMany({},{$rename:{number_of_belts:"belts_earned"}})#
+
+
+
+
+$unset:Removes the specified field from a document.
+// "" empty string is important otherwise this won't be accepted
+db.students.updateMany({},{$unset:{lucky_number:""}})#
+
+
+
+//if you don't use many after update it will add the value for the first document inside the collection (first student only)
+db.students.updateMany({},{$set:{updated_on:new Date()}})#
