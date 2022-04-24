@@ -6,14 +6,20 @@ import DeleteButton from './DeleteButton';
 import { Paper, Card , Button } from '@material-ui/core';
 
 const ProductList = (props) => {
-    const {removeFromDom} = props;
+    const [products, setProducts] = useState([]);
     
+useEffect(() => {
+    axios.get('http://localhost:8000/api/products')
+        .then(res => setProducts(res.data));
+}, [])
 
-
+const removeFromDom = productId => {
+    setProducts(products.filter(product => product._id !== productId))
+}
     
     return (
         <div>
-            {props.products.map((product, idx) => {
+            {products.map((product, idx) => {
                 return (
                     <p key={idx}>
                         <Link to={"/products/" + product._id}>
