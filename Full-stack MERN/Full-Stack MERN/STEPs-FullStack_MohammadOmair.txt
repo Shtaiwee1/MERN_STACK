@@ -167,10 +167,13 @@ module.exports.deleteAuthor = (req, res) => {
 *****************************************************************************************
 In the author.routes.js:
 
-const PersonController = require('../controllers/person.controller');
+const AuthorController = require('../controllers/author.controller');
 module.exports = function(app){
-    app.get('/api', PersonController.index);
-    app.post('/api/people', PersonController.createPerson);
+    app.get("/api/authors", AuthorController.getAllAuthors);
+    app.get("/api/authors/:id", AuthorController.getAuthor);
+    app.put("/api/authors/:id", AuthorController.updateAuthor);
+    app.delete("/api/authors/:id", AuthorController.deleteAuthor);
+    app.post("/api/authors", AuthorController.createAuthor);
 }
 
 *****************************************************************************************
