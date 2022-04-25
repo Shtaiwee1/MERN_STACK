@@ -8,8 +8,8 @@ In the backend:
 -cd server
 -npm init -y  (important before npm install)
 -npm install express mongoose cors
--copy nul server.js(or create a file named server.js)  inside the server folder 
--Let's create our project structure by creating four more folders inside that folder called "config", "controllers", "models" and "routes". 
+- create a file named server.js inside the server folder 
+-Let's create our project structure by creating four more folders inside the server folder called "config", "controllers", "models" and "routes". 
 -Inside the folders,create the files as in the following example---so that we have the following structure for Backend:
          -products
 		 -Server
@@ -26,9 +26,11 @@ In the backend:
 
 In the front-end:
 ====================
+- cd out of the server folder
 -npx create-react-app client  
 -cd client
--npm install axios react-router-dom@5 @material-ui/core   // or @reach/router 
+-npm install axios react-router-dom    // or @reach/router 
+-npm install @mui/material @emotion/react @emotion/styled
 -create 2 folders inside src folder (views and components)
 -inside views folder create Main.js file like this: client/src/views/Main.js  
 
@@ -42,6 +44,245 @@ Note that after creating the react app(client) the final folder structure is:
 			-models      => product.model.js
                 	-server.js   =>
 		-client
+
+
+
+
+
+
+
+****************************************************************************************
+In the mongoose.config.js:
+
+const mongoose = require('mongoose');
+mongoose.connect("mongodb://localhost/authors_db", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
+    .then(() => console.log("Established a connection to the database"))
+    .catch(err => console.log("Something went wrong when connecting to the database", err));
+
+
+****************************************************************************************
+In the author.model.js:
+
+const mongoose = require("mongoose");
+const AuthorSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, "Name is required!"],
+      minlength: [3, "Name must be at least 3 characters!"],
+    },
+  },
+  { timestamps: true }
+);
+module.exports.Author = mongoose.model("Author", AuthorSchema);
+
+****************************************************************************************
+In the server.js:
+
+const express = require('express');
+const cors = require('cors');
+const app = express();
+
+require('./server/config/mongoose.config'); // This is new
+
+app.use(cors());
+
+app.use(express.json(), express.urlencoded({ extended: true }));
+
+require('./server/routes/author.routes')(app);
+app.listen(8000, () => {
+    console.log("Listening at Port 8000")
+})
+*****************************************************************************************
+In the author.controller.js:
+
+const { Author } = require("../models/author.model");
+
+module.exports.index = (request, response) => {
+  response.json({
+    message: "Hello World",
+  });
+};
+
+module.exports.createAuthor = (req, res) => {
+  const { name } = req.body;
+  Author.create({
+    name,
+  })
+    .then((author) => res.json(author))
+    .catch((err) => {
+      res.status(400).send(err);
+    });
+};
+
+module.exports.getAllAuthors = (req, res) => {
+  Author.find({})
+    .sort({ name: "asc" })
+    .then((authors) => res.json(authors))
+    .catch((err) => {
+      res.status(400).send(err);
+    });
+};
+
+module.exports.updateAuthor = (req, res) => {
+  const { id } = req.params;
+  Author.findOneAndUpdate(
+    {
+      _id: id,
+    },
+    req.body,
+    { runValidators: true, new: true }
+  )
+    .then((updatedAuthor) => res.json(updatedAuthor))
+    .catch((err) => res.status(400).send(err));
+};
+
+module.exports.getAuthor = (req, res) => {
+  const { id } = req.params;
+  Author.findOne({
+    _id: id,
+  })
+    .then((author) => res.json(author))
+    .catch((err) => {
+      res.status(400).send(err);
+    });
+};
+
+module.exports.deleteAuthor = (req, res) => {
+  const { id } = req.params;
+  Author.deleteOne({
+    _id: id,
+  })
+    .then((author) => res.json(author))
+    .catch((err) => {
+      res.status(400).send(err);
+    });
+};
+
+
+
+*****************************************************************************************
+In the author.routes.js:
+
+const PersonController = require('../controllers/person.controller');
+module.exports = function(app){
+    app.get('/api', PersonController.index);
+    app.post('/api/people', PersonController.createPerson);
+}
+
+*****************************************************************************************
+
+In the Main.js:
+
+import React from 'react';
+import {BrowserRouter , Routes , Route} from "react-router-dom"
+import Home from "../components/Home";
+import NewAuthor from "../components/NewAuthor";
+import EditAuthor from "../components/Update";
+
+
+const Main =() =>{
+    return (
+        <div>
+            <h2>Favourite authors</h2>
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/"   element={<Home/>}/>
+                    <Route path= "/new"  element={<NewAuthor/>}     />
+                    <Route path= "/edit/:id"  element={<EditAuthor/>}    />
+                </Routes>
+            </BrowserRouter>
+           
+        </div>
+    )
+    }
+
+export default Main;
+
+
+
+
+******************************************************************************
+
+In the AuthorForm.js:
+
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { TextField, Button, Box, Paper } from "@mui/material";
+const Form = (props) => {
+  const { initialName, submitAction } = props;
+  const [name, setName] = useState(initialName);
+  const navigate = useNavigate();
+
+  const submitHandler = (e) => {
+    e.preventDefault();
+    submitAction({ name });
+  };
+
+  return (
+    <>
+      <Paper style={{ padding: "2rem" }}>
+        <form onSubmit={submitHandler}>
+          <TextField
+            id="outlined-basic"
+            label="Name"
+            variant="outlined"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <Box mt={2}>
+            <Button
+              style={{ marginRight: "1rem" }}
+              type="button"
+              variant="outlined"
+              color="error"
+              onClick={() => navigate("/")}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" variant="outlined">
+              Submit
+            </Button>
+          </Box>
+        </form>
+      </Paper>
+    </>
+  );
+};
+
+export default Form;
+
+
+
+***********************************************************************************************************
+
+
+
+Important notes to consider :
+
+
+to check the database you have two options:
+
+
+Using the cmd console:
+
+cd c:/"Program Files"/MongoDB/Server/<version_number>/bin/
+mongo.exe
+show dbs
+use <db name>
+show collections
+db.<name of collection>.find() ----->>this will show you all the created objects as JSON
+
+Using MongoDB compass:
+
+open the application and press and connect
+then navigate to the name of your database
+to see the collections inside it
+
+
 
 
 //////////////////////////////////////////FRONT END/////////////////////////////////////////
@@ -66,3 +307,10 @@ Note: DO any other modification required if needed
 For Backend-go to the project directory(cd server):     nodemon server.js 
 For FE:    -the front end directory(cd client):    	  npm run start
 ////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
